@@ -6,14 +6,6 @@ on:
   pull_request:
     branches: [ "master" ]
 
-name: Java CI with Maven
-
-on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
-
 jobs:
   build:
 
