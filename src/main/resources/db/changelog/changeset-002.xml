@@ -32,16 +32,16 @@
 
         <insert tableName="events">
             <column name="event_id" value="event_004"/>
-            <column name="start_time" valueDate="2024-08-18 11:00:00"/>
-            <column name="end_time" valueDate="2024-08-18 13:00:00"/>
+            <column name="start_time" valueDate="2024-08-28 11:00:00"/>
+            <column name="end_time" valueDate="2024-08-28 13:00:00"/>
             <column name="latitude" valueNumeric="19.0760"/>
             <column name="longitude" valueNumeric="72.8777"/>
         </insert>
 
         <insert tableName="events">
             <column name="event_id" value="event_005"/>
-            <column name="start_time" valueDate="2024-08-19 16:00:00"/>
-            <column name="end_time" valueDate="2024-08-19 18:00:00"/>
+            <column name="start_time" valueDate="2024-08-10 16:00:00"/>
+            <column name="end_time" valueDate="2024-08-10 18:00:00"/>
             <column name="latitude" valueNumeric="55.9533"/>
             <column name="longitude" valueNumeric="-3.1883"/>
         </insert>

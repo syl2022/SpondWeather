@@ -110,4 +110,6 @@ public class WeatherServiceTest {
         assertEquals(1.4, result.getWindSpeed());
         assertEquals("rain", result.getForcast());
     }
+
+    /*TODO: Add more test cases*/
 }

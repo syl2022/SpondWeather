@@ -47,7 +47,8 @@ public class WeatherServiceImpl implements WeatherService {
         if (event == null) {
             throw new IllegalArgumentException("Event not found with ID: " + eventId);
         }
-
+        if (event.getEndTime().isBefore(Instant.now()) || event.getStartTime().isAfter(Instant.now().plus(Duration.ofDays(7))))
+            return null;
         // Create cache key based on event's location
         String cacheKey = event.getLatitude() + "," + event.getLongitude();
 
