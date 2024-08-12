@@ -9,6 +9,7 @@ import no.example.weather.spond.model.WeatherData;
 import no.example.weather.spond.model.WeatherResponse;
 import no.example.weather.spond.repository.EventRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -20,7 +21,11 @@ import java.util.List;
 @Service
 public class WeatherServiceImpl implements WeatherService {
 
-    private static final String USER_AGENT = "weatherApp/1.0 (shruti2022yl@gmail.com)"; // This should be picked from properties
+    @Value("${weather.api.user-agent}")
+    private String USER_AGENT = "";
+
+    @Value("${weather.api.base-url}")
+    private String BASE_URL = "";
 
     @Autowired
     private WebClient.Builder webClientBuilder;
@@ -67,7 +72,7 @@ public class WeatherServiceImpl implements WeatherService {
 
         webClient = webClientBuilder
                 .defaultHeader("User-Agent", USER_AGENT)
-                .baseUrl("https://api.met.no/weatherapi/locationforecast/2.0/compact") // This should be picked from properties
+                .baseUrl(BASE_URL)
                 .build();
 
         String uri = String.format("?lat=%s&lon=%s", lat, lon);
@@ -88,21 +93,21 @@ public class WeatherServiceImpl implements WeatherService {
             WeatherResponse weatherResponse = responseEntity.getBody();
             String expiresHeader = responseEntity.getHeaders().getFirst("Expires");
 
-            // Parse the 'Expires' header to get the fetched time
+            // Parse the 'Expires' header to get the expiration time of the data
             Instant fetchedAt = Helper.convertToInstantFromRFC(expiresHeader);
 
             // Return the fetched weather data wrapped in CachedWeather
             return new CachedWeather(weatherResponse.getProperties().getTimeseries(), fetchedAt);
 
         } catch (Exception e) {
-            throw new WeatherApiException("Failed to fetch weather data", e);
+            e.printStackTrace();
+            throw new WeatherApiException("Failed to fetch weather data", e.getCause());
         }
     }
 
     private WeatherResponse.Timeseries findClosestTimeSeries(List<WeatherResponse.Timeseries> timeSeries, Instant startTime, Instant endTime) {
         Instant midpoint = startTime.plus(Duration.between(startTime, endTime).dividedBy(2));
 
-        // Initialize variables to keep track of the closest timeseries
         WeatherResponse.Timeseries closest = null;
         long minDifference = Long.MAX_VALUE;
 
