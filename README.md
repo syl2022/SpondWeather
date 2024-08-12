@@ -11,12 +11,13 @@
   - Refer sample data from db-changelog for eventId
 
 # Sample Response
-```{
+```
+{
     "eventId": "event_001",
     "temperature": 29.5,
     "windSpeed": 1.4,
     "forcast": "rain"
 }
-
+```
   
 
