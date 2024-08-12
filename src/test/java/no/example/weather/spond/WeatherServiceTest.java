@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.TimeZone;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -54,6 +55,8 @@ public class WeatherServiceTest {
 
     @BeforeEach
     public void setUp() {
+
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         MockitoAnnotations.openMocks(this);
         weatherService = new WeatherServiceImpl(weatherCache, eventRepository); // Manually instantiate with mocks
     }
@@ -103,8 +106,8 @@ public class WeatherServiceTest {
 
         // Verify
         assertNotNull(result);
-        assertEquals(29.1, result.getTemperature());
-        assertEquals(1.6, result.getWindSpeed());
+        assertEquals(29.5, result.getTemperature());
+        assertEquals(1.4, result.getWindSpeed());
         assertEquals("rain", result.getForcast());
     }
 }
