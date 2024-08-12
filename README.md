@@ -21,4 +21,7 @@
 }
 ```
   The logic that I tried to follow is to pick the middle time from the start and end time for the event to get the approximation and then find the closest timseries in the WeatherResponse/cached data to get the forcast for it. I am using caching to avoid making repeated API calls to met.no using combination of lattituted and longitude as the key.
-
+#### Scope of improvement:
+- Can utilize caching in spring with the standard annotation and maybe save some code as well:
+  https://docs.spring.io/spring-framework/reference/integration/cache/annotations.html
+- Can put all the webclient things used for external communication in a separate service-class. 
