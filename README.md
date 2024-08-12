@@ -1,6 +1,6 @@
 # <div align="center">Weather App</div>
 
-- This Web Application is based on Java, SpringBoot, JPA and Liquidbase. Uses caching from caffeine. Webflux for WebCLient
+- This Web Application is based on Java, SpringBoot, JPA and caching from caffeine, Webflux for WebCLient.
 - It has OpenAPI swagger-ui accessible at http://localhost:8080/swagger-ui/index.html
 
 # Input:
