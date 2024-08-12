@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="insert-events-001" author="yourname">
+        <insert tableName="events">
+            <column name="event_id" value="event_001"/>
+            <column name="start_time" valueDate="2024-08-15 09:00:00"/>
+            <column name="end_time" valueDate="2024-08-15 11:00:00"/>
+            <column name="latitude" valueNumeric="28.6139"/>
+            <column name="longitude" valueNumeric="77.2090"/>
+        </insert>
+
+        <insert tableName="events">
+            <column name="event_id" value="event_002"/>
+            <column name="start_time" valueDate="2024-08-16 14:00:00"/>
+            <column name="end_time" valueDate="2024-08-16 16:00:00"/>
+            <column name="latitude" valueNumeric="51.5074"/>
+            <column name="longitude" valueNumeric="-0.1278"/>
+        </insert>
+
+        <insert tableName="events">
+            <column name="event_id" value="event_003"/>
+            <column name="start_time" valueDate="2024-08-17 18:00:00"/>
+            <column name="end_time" valueDate="2024-08-17 20:00:00"/>
+            <column name="latitude" valueNumeric="60.4720"/>
+            <column name="longitude" valueNumeric="8.4689"/>
+        </insert>
+
+        <insert tableName="events">
+            <column name="event_id" value="event_004"/>
+            <column name="start_time" valueDate="2024-08-18 11:00:00"/>
+            <column name="end_time" valueDate="2024-08-18 13:00:00"/>
+            <column name="latitude" valueNumeric="19.0760"/>
+            <column name="longitude" valueNumeric="72.8777"/>
+        </insert>
+
+        <insert tableName="events">
+            <column name="event_id" value="event_005"/>
+            <column name="start_time" valueDate="2024-08-19 16:00:00"/>
+            <column name="end_time" valueDate="2024-08-19 18:00:00"/>
+            <column name="latitude" valueNumeric="55.9533"/>
+            <column name="longitude" valueNumeric="-3.1883"/>
+        </insert>
+
+    </changeSet>
+
+</databaseChangeLog>
