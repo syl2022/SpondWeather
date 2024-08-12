@@ -12,27 +12,27 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 class GlobalException {
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity handleInvalidEventIdException(IllegalArgumentException ex) {
+    public ResponseEntity<ErrorResponse> handleInvalidEventIdException(IllegalArgumentException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(WeatherDataNotFoundException.class)
-    public ResponseEntity handleWeatherDataNotFoundException(WeatherDataNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleWeatherDataNotFoundException(WeatherDataNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(WeatherApiException.class)
-    public ResponseEntity handleWeatherApiException(WeatherApiException ex) {
+    public ResponseEntity<ErrorResponse> handleWeatherApiException(WeatherApiException ex) {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity handleAllException(HttpServletRequest request, Exception ex) throws Exception {
+    public ResponseEntity<ErrorResponse> handleAllException(HttpServletRequest request, Exception ex) throws Exception {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
-    public ResponseEntity handleHttpMediaTypeNotAcceptableException(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleHttpMediaTypeNotAcceptableException(Exception ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(ex.getMessage()));
     }
 }

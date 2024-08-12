@@ -18,7 +18,7 @@ public class WeatherController {
     private WeatherServiceImpl weatherService;
 
     @GetMapping("/weather")
-    public ResponseEntity getWeather(@RequestParam String eventId) {
+    public ResponseEntity<WeatherData> getWeather(@RequestParam String eventId) {
 
         WeatherData weatherData = weatherService.getWeatherData(eventId);
 
