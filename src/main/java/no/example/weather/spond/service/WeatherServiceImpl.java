@@ -24,12 +24,17 @@ public class WeatherServiceImpl implements WeatherService {
 
     @Autowired
     private WebClient.Builder webClientBuilder;
+
     private WebClient webClient;
-    @Autowired
     private Cache<String, CachedWeather> weatherCache;
 
     @Autowired
     private EventRepository eventRepository;
+
+    public WeatherServiceImpl(Cache<String, CachedWeather> weatherCache, EventRepository eventRepository) {
+        this.weatherCache = weatherCache;
+        this.eventRepository = eventRepository;
+    }
 
     @Override
     public WeatherData getWeatherData(String eventId) {

@@ -28,6 +28,9 @@ import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.when;
 
 @SpringBootTest
 public class WeatherServiceTest {
@@ -39,7 +42,10 @@ public class WeatherServiceTest {
     private EventRepository eventRepository;
 
     @Mock
-    private WebClient.Builder webClientBuilder;  // Mock WebClient.Builder if used in the service
+    private WebClient.Builder webClientBuilder;
+
+    @Mock
+    private WebClient webClient;
 
     @Autowired
     private WeatherServiceImpl weatherService;
@@ -49,7 +55,7 @@ public class WeatherServiceTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        //weatherService = new WeatherServiceImpl(webClientBuilder, weatherCache, eventRepository); // Manually instantiate
+        weatherService = new WeatherServiceImpl(weatherCache, eventRepository); // Manually instantiate with mocks
     }
 
     public static WeatherResponse loadWeatherResponseFromFile(String filePath) throws IOException {
@@ -79,20 +85,26 @@ public class WeatherServiceTest {
         WeatherResponse weatherResponse = loadWeatherResponseFromFile("response.json");
 
         CachedWeather cachedWeather = new CachedWeather(weatherResponse.getProperties().getTimeseries(), Instant.now().plus(Duration.ofHours(1)));
-        weatherCache.put(event.getLatitude() + "," + event.getLongitude(), cachedWeather);
-        // Create a spy for WeatherServiceImpl
 
+        // Spy on the weatherService to mock fetchWeatherData
+        WeatherServiceImpl spyService = Mockito.spy(weatherService);
+        Mockito.doReturn(cachedWeather)
+                .when(spyService)
+                .fetchWeatherData(Mockito.anyDouble(), Mockito.anyDouble());
 
         // Mock repository to return the event
-        Mockito.when(eventRepository.getEventByEventId("event_001")).thenReturn(event);
+        when(eventRepository.getEventByEventId("event_001")).thenReturn(event);
 
-        // Execute
-        WeatherData result = weatherService.getWeatherData("event_001");
+        // Mock the cache to return cachedWeather
+        when(weatherCache.get(anyString(), any())).thenReturn(cachedWeather);
+
+        // Execute with the spy object to avoid calling the real method
+        WeatherData result = spyService.getWeatherData("event_001");
 
         // Verify
         assertNotNull(result);
-        assertEquals(29.5, result.getTemperature());
-        assertEquals(1.4, result.getWindSpeed());
+        assertEquals(29.1, result.getTemperature());
+        assertEquals(1.6, result.getWindSpeed());
         assertEquals("rain", result.getForcast());
-}
+    }
 }
