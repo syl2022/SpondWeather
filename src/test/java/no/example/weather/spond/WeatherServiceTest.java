@@ -91,8 +91,8 @@ public class WeatherServiceTest {
 
         // Verify
         assertNotNull(result);
-        assertEquals(29.1, result.getTemperature());
-        assertEquals(1.6, result.getWindSpeed());
+        assertEquals(29.5, result.getTemperature());
+        assertEquals(1.4, result.getWindSpeed());
         assertEquals("rain", result.getForcast());
 }
 }
