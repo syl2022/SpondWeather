@@ -20,15 +20,12 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.util.TimeZone;
 
 import static org.junit.Assert.assertThrows;
@@ -47,12 +44,6 @@ public class WeatherServiceTest {
 
     @Mock
     private EventRepository eventRepository;
-
-    @Mock
-    private WebClient.Builder webClientBuilder;
-
-    @Mock
-    private WebClient webClient;
 
     @Autowired
     private WeatherServiceImpl weatherService;
@@ -79,6 +70,7 @@ public class WeatherServiceTest {
         objectMapper.registerModule(new JavaTimeModule());
         return objectMapper.readValue(fileContents.toString(), WeatherResponse.class);
     }
+
     @Test
     public void testGetWeatherData() throws IOException {
         // Prepare mock event
@@ -89,36 +81,26 @@ public class WeatherServiceTest {
         event.setStartTime(Helper.convertToInstant("2024-08-15 09:00:00"));
         event.setEndTime(Helper.convertToInstant("2024-08-15 11:00:00"));
 
-        Instant instantExpected = Instant.parse("2024-08-12T10:00:00Z");
+        Instant currentInstant = Instant.parse("2024-08-12T10:00:00Z");
 
         try (MockedStatic<Instant> mockedStatic = mockStatic(Instant.class, invocation -> invocation.callRealMethod())) {
-            mockedStatic.when(Instant::now).thenReturn(instantExpected);
+            mockedStatic.when(Instant::now).thenReturn(currentInstant);
 
-        // Prepare mock weather response
-        WeatherResponse weatherResponse = loadWeatherResponseFromFile("response.json");
+            // Prepare mock weather response
+            WeatherResponse weatherResponse = loadWeatherResponseFromFile("response.json");
+            CachedWeather cachedWeather = new CachedWeather(weatherResponse.getProperties().getTimeseries(), Instant.now().plus(Duration.ofHours(1)));
 
-        CachedWeather cachedWeather = new CachedWeather(weatherResponse.getProperties().getTimeseries(), Instant.now().plus(Duration.ofHours(1)));
+            when(eventRepository.getEventByEventId("event_001")).thenReturn(event);
+            when(weatherCache.get(anyString(), any())).thenReturn(cachedWeather);
 
-        // Spy on the weatherService to mock fetchWeatherData
-        WeatherServiceImpl spyService = Mockito.spy(weatherService);
-        Mockito.doReturn(cachedWeather)
-                .when(spyService)
-                .fetchWeatherData(Mockito.anyDouble(), Mockito.anyDouble());
+            // Execute with the spy object to avoid calling the real method
+            WeatherData result = weatherService.getWeatherData("event_001");
 
-        // Mock repository to return the event
-        when(eventRepository.getEventByEventId("event_001")).thenReturn(event);
-
-        // Mock the cache to return cachedWeather
-        when(weatherCache.get(anyString(), any())).thenReturn(cachedWeather);
-
-        // Execute with the spy object to avoid calling the real method
-        WeatherData result = spyService.getWeatherData("event_001");
-
-        // Verify
-        assertNotNull(result);
-        assertEquals(29.5, result.getTemperature());
-        assertEquals(1.4, result.getWindSpeed());
-        assertEquals("rain", result.getForcast());
+            // Verify
+            assertNotNull(result);
+            assertEquals(29.5, result.getTemperature());
+            assertEquals(1.4, result.getWindSpeed());
+            assertEquals("rain", result.getForcast());
         }
     }
 
@@ -134,8 +116,9 @@ public class WeatherServiceTest {
 
         assertEquals("Event not found with ID: non_existent_event", exception.getMessage());
     }
+
     @Test
-    public void testFetchWeatherDataApiFailure() throws IOException {
+    public void testFetchWeatherDataApiFailure(){
         // Prepare mock event
         Event event = new Event();
         event.setEventId("event_001");
@@ -143,22 +126,18 @@ public class WeatherServiceTest {
         event.setLongitude(77.2090);
         event.setStartTime(Helper.convertToInstant("2024-08-15 09:00:00"));
         event.setEndTime(Helper.convertToInstant("2024-08-15 11:00:00"));
-        WeatherServiceImpl spyService = Mockito.spy(weatherService);
+
         Instant instantExpected = Instant.parse("2024-08-12T10:00:00Z");
         try (MockedStatic<Instant> mockedStatic = mockStatic(Instant.class, invocation -> invocation.callRealMethod())) {
             mockedStatic.when(Instant::now).thenReturn(instantExpected);
-            // Mock repository to return the event
             when(eventRepository.getEventByEventId("event_001")).thenReturn(event);
 
             // Mock the cache to return cachedWeather
             when(weatherCache.get(anyString(), any())).thenThrow(new WeatherApiException("API Failure", null));
 
-            Mockito.doThrow(new WeatherApiException("API Failure", null))
-                    .when(spyService).fetchWeatherData(event.getLatitude(), event.getLongitude());
-
             // Execute and verify that the exception is thrown
             Exception exception = assertThrows(WeatherApiException.class, () -> {
-                spyService.getWeatherData("event_001");
+                weatherService.getWeatherData("event_001");
             });
 
             assertEquals("API Failure", exception.getMessage());
