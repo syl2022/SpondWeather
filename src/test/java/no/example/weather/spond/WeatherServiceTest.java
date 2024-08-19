@@ -14,6 +14,7 @@ import no.example.weather.spond.service.WeatherServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,8 +25,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.util.TimeZone;
 
 import static org.junit.Assert.assertThrows;
@@ -33,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
@@ -75,7 +79,6 @@ public class WeatherServiceTest {
         objectMapper.registerModule(new JavaTimeModule());
         return objectMapper.readValue(fileContents.toString(), WeatherResponse.class);
     }
-
     @Test
     public void testGetWeatherData() throws IOException {
         // Prepare mock event
@@ -85,6 +88,11 @@ public class WeatherServiceTest {
         event.setLongitude(77.2090);
         event.setStartTime(Helper.convertToInstant("2024-08-15 09:00:00"));
         event.setEndTime(Helper.convertToInstant("2024-08-15 11:00:00"));
+
+        Instant instantExpected = Instant.parse("2024-08-12T10:00:00Z");
+
+        try (MockedStatic<Instant> mockedStatic = mockStatic(Instant.class, invocation -> invocation.callRealMethod())) {
+            mockedStatic.when(Instant::now).thenReturn(instantExpected);
 
         // Prepare mock weather response
         WeatherResponse weatherResponse = loadWeatherResponseFromFile("response.json");
@@ -111,6 +119,7 @@ public class WeatherServiceTest {
         assertEquals(29.5, result.getTemperature());
         assertEquals(1.4, result.getWindSpeed());
         assertEquals("rain", result.getForcast());
+        }
     }
 
     @Test
@@ -135,22 +144,25 @@ public class WeatherServiceTest {
         event.setStartTime(Helper.convertToInstant("2024-08-15 09:00:00"));
         event.setEndTime(Helper.convertToInstant("2024-08-15 11:00:00"));
         WeatherServiceImpl spyService = Mockito.spy(weatherService);
+        Instant instantExpected = Instant.parse("2024-08-12T10:00:00Z");
+        try (MockedStatic<Instant> mockedStatic = mockStatic(Instant.class, invocation -> invocation.callRealMethod())) {
+            mockedStatic.when(Instant::now).thenReturn(instantExpected);
+            // Mock repository to return the event
+            when(eventRepository.getEventByEventId("event_001")).thenReturn(event);
 
-        // Mock repository to return the event
-        when(eventRepository.getEventByEventId("event_001")).thenReturn(event);
+            // Mock the cache to return cachedWeather
+            when(weatherCache.get(anyString(), any())).thenThrow(new WeatherApiException("API Failure", null));
 
-        // Mock the cache to return cachedWeather
-        when(weatherCache.get(anyString(), any())).thenThrow(new WeatherApiException("API Failure", null));
+            Mockito.doThrow(new WeatherApiException("API Failure", null))
+                    .when(spyService).fetchWeatherData(event.getLatitude(), event.getLongitude());
 
-        Mockito.doThrow(new WeatherApiException("API Failure", null))
-                .when(spyService).fetchWeatherData(event.getLatitude(), event.getLongitude());
+            // Execute and verify that the exception is thrown
+            Exception exception = assertThrows(WeatherApiException.class, () -> {
+                spyService.getWeatherData("event_001");
+            });
 
-        // Execute and verify that the exception is thrown
-        Exception exception = assertThrows(WeatherApiException.class, () -> {
-            spyService.getWeatherData("event_001");
-        });
-
-        assertEquals("API Failure", exception.getMessage());
+            assertEquals("API Failure", exception.getMessage());
+        }
     }
 
 

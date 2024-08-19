@@ -64,7 +64,6 @@ public class WeatherServiceImpl implements WeatherService {
         // Find the closest weather data to the event's time window
         WeatherResponse.Data eventWeather = findClosestTimeSeries(cachedWeather.getTimeseries(), event.getStartTime(), event.getEndTime()).getData();
 
-        // Return the relevant weather data
         return new WeatherData(eventId, eventWeather.getInstant().getDetails().getAir_temperature(), eventWeather.getInstant().getDetails().getWind_speed(), eventWeather.getNext_1_hours() != null ? eventWeather.getNext_1_hours().getSummary().getSymbol_code() : eventWeather.getNext_12_hours().getSummary().getSymbol_code());
     }
 
